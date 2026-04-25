@@ -8,8 +8,21 @@
   import { saveProgress, getLatestProgress } from '$lib/services/history';
   import { auth } from '$lib/services/firebase';
   import { appState } from '$lib/stores/appState.svelte';
-  import { activeRoute } from '$lib/services/route';
-  import { Footprints, History } from 'lucide-svelte';
+  import { routeSegments, activeRoute } from '$lib/services/route';
+  import { Footprints, History, MapPin, Clock } from 'lucide-svelte';
+
+  // 現在の進捗率から、どの区間にいるかを判定する
+  const currentSegment = $derived.by(() => {
+    let accumulatedDistance = 0;
+    const totalDistance = routeSegments.reduce((acc, s) => acc + s.distanceKm, 0);
+    const currentDistance = (appState.progress / 100) * totalDistance;
+
+    for (const segment of routeSegments) {
+      accumulatedDistance += segment.distanceKm;
+      if (currentDistance <= accumulatedDistance) return segment;
+    }
+    return routeSegments[routeSegments.length - 1];
+  });
 
   onMount(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -45,30 +58,51 @@
 </script>
 
 <div class="min-h-screen bg-slate-50 flex flex-col items-center p-4 pb-12">
-  <div class="w-full max-w-md space-y-6">
-    <header class="pt-8 pb-4 flex items-center justify-between">
+  <div class="w-full max-w-md space-y-4">
+    <header class="pt-6 pb-2 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
-          <Footprints class="text-white" size={28} />
+        <div class="p-2 bg-blue-600 rounded-xl shadow-lg">
+          <Footprints class="text-white" size={24} />
         </div>
         <div>
-          <h1 class="text-2xl font-black text-slate-900 tracking-tight">tohodan</h1>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Route Tracker</p>
+          <h1 class="text-xl font-black text-slate-900 tracking-tight">tohodan</h1>
         </div>
       </div>
-      <button class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+      <button class="p-2 text-slate-400 hover:text-blue-600">
         <History size={24} />
       </button>
     </header>
 
+    <!-- 地図セクション -->
     <Map />
+
+    <!-- 現在の区間情報 -->
+    {#if currentSegment}
+      <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Current Segment</p>
+          <h2 class="text-lg font-bold leading-tight">{currentSegment.name}</h2>
+        </div>
+        <div class="text-right">
+          <div class="flex items-center justify-end gap-1 font-bold">
+            <MapPin size={14} />
+            <span>{currentSegment.distanceKm} km</span>
+          </div>
+          <div class="flex items-center justify-end gap-1 text-xs opacity-80">
+            <Clock size={12} />
+            <span>約 {currentSegment.estimatedMinutes} 分</span>
+          </div>
+        </div>
+      </div>
+    {/if}
+
     <ProgressCard />
 
     <div class="space-y-4">
       <Button 
         onclick={handleUpdateLocation} 
         disabled={appState.isTracking}
-        class="w-full py-4 text-lg shadow-xl shadow-blue-100 flex items-center justify-center gap-2"
+        class="w-full py-4 text-lg shadow-xl flex items-center justify-center gap-2"
       >
         {#if appState.isTracking}
           <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -79,17 +113,10 @@
       </Button>
 
       {#if appState.error}
-        <div class="p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p class="text-red-500 text-[10px] text-center font-semibold leading-tight">{appState.error}</p>
+        <div class="p-3 bg-red-50 border border-red-100 rounded-lg text-center">
+          <p class="text-red-500 text-[10px] font-semibold">{appState.error}</p>
         </div>
       {/if}
     </div>
-
-    <footer class="pt-4 text-center">
-      <p class="text-[10px] text-slate-400 font-medium leading-relaxed">
-        データはクラウドに安全に保存され、<br>
-        次回のアクセス時にも自動的に復元されます。
-      </p>
-    </footer>
   </div>
 </div>

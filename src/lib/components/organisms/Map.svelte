@@ -2,12 +2,12 @@
   import { onMount } from 'svelte';
   import { loadMapLibrary, loadMarkerLibrary } from '$lib/services/googleMaps';
   import { appState } from '$lib/stores/appState.svelte';
-  import { getGoogleMapsPath } from '$lib/services/route';
+  import { getGoogleMapsPath, restPoints } from '$lib/services/route';
 
   let mapElement: HTMLDivElement;
   let map: google.maps.Map | undefined;
   let polyline: google.maps.Polyline | undefined;
-  let marker: any | undefined;
+  let userMarker: any | undefined;
 
   const routePoints = getGoogleMapsPath();
 
@@ -16,13 +16,10 @@
       const mapsLib = await loadMapLibrary();
       const markerLib = await loadMarkerLibrary();
 
-      if (!mapsLib || !markerLib || !mapElement) {
-        console.error('Map components could not be initialized.');
-        return;
-      }
+      if (!mapsLib || !markerLib || !mapElement) return;
 
       const { Map, Polyline } = mapsLib as any;
-      const { AdvancedMarkerElement, PinElement } = markerLib as any;
+      const { AdvancedMarkerElement, PinElement, InfoWindow } = markerLib as any;
 
       map = new Map(mapElement, {
         center: routePoints[0] || { lat: 35.6812, lng: 139.7671 },
@@ -36,34 +33,60 @@
         path: routePoints,
         geodesic: true,
         strokeColor: '#2563eb',
-        strokeOpacity: 1.0,
+        strokeOpacity: 0.8,
         strokeWeight: 4,
         map: map
       });
 
-      const pin = new PinElement({
-        background: '#ef4444',
+      // 1. 休憩地点マーカーの追加
+      restPoints.forEach(point => {
+        const restPin = new PinElement({
+          background: '#10b981', // green-500
+          borderColor: '#ffffff',
+          glyphColor: '#ffffff',
+          scale: 0.8
+        });
+
+        const m = new AdvancedMarkerElement({
+          map: map,
+          position: { lat: point.coords[1], lng: point.coords[0] },
+          content: restPin.element,
+          title: point.name
+        });
+
+        const infoWindow = new InfoWindow({
+          content: \`<div style="padding: 8px;">
+            <h3 style="font-weight: bold; margin-bottom: 4px;">\${point.name}</h3>
+            <p style="font-size: 11px; color: #666;">\${point.description}</p>
+          </div>\`
+        });
+
+        m.addListener('click', () => {
+          infoWindow.open(map, m);
+        });
+      });
+
+      // 2. ユーザーマーカーの作成
+      const userPin = new PinElement({
+        background: '#3b82f6',
         borderColor: '#ffffff',
         glyphColor: '#ffffff',
         scale: 1.2
       });
 
-      marker = new AdvancedMarkerElement({
+      userMarker = new AdvancedMarkerElement({
         map: map,
-        content: pin.element,
+        content: userPin.element,
         title: '現在地'
       });
     } catch (err) {
-      console.error('Detailed Error in Map onMount:', err);
+      console.error('Map init error:', err);
     }
 
     $effect(() => {
-      if (appState.currentCoords && marker && map) {
-        const position = { 
-          lat: appState.currentCoords[1], 
-          lng: appState.currentCoords[0] 
-        };
-        marker.position = position;
+      if (appState.currentCoords && userMarker && map) {
+        const position = { lat: appState.currentCoords[1], lng: appState.currentCoords[0] };
+        userMarker.position = position;
         map.panTo(position);
       }
     });
