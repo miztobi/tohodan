@@ -1039,18 +1039,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.63815,
         34.60711
-      ],
-      [
-        135.6347477,
-        34.6187693
-      ],
-      [
-        135.6381471,
-        34.6071116
       ]
     ],
-    "distanceKm": 4.57,
-    "estimatedMinutes": 69
+    "distanceKm": 1.9,
+    "estimatedMinutes": 29
   },
   {
     "name": "2. 恩智神社〜のどか下 40min",
@@ -2445,18 +2437,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.67815,
         34.60649
-      ],
-      [
-        135.6704734,
-        34.6040435
-      ],
-      [
-        135.6781476,
-        34.6064924
       ]
     ],
-    "distanceKm": 2.94,
-    "estimatedMinutes": 44
+    "distanceKm": 1.43,
+    "estimatedMinutes": 22
   },
   {
     "name": "4. 信貴山バス停〜竜田川 40min",
@@ -3584,18 +3568,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.71716,
         34.60323
-      ],
-      [
-        135.6783523,
-        34.6063932
-      ],
-      [
-        135.7171554,
-        34.6032287
       ]
     ],
-    "distanceKm": 11.15,
-    "estimatedMinutes": 167
+    "distanceKm": 4.02,
+    "estimatedMinutes": 60
   },
   {
     "name": "5. 竜田川〜安堵町役場",
@@ -4447,18 +4423,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.75671,
         34.60608
-      ],
-      [
-        135.7172355,
-        34.6028346
-      ],
-      [
-        135.7567087,
-        34.6060812
       ]
     ],
-    "distanceKm": 11.39,
-    "estimatedMinutes": 171
+    "distanceKm": 4.13,
+    "estimatedMinutes": 62
   },
   {
     "name": "6. 安堵町役場〜ファミ公 40min",
@@ -5586,18 +5554,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.78249,
         34.59938
-      ],
-      [
-        135.7567099,
-        34.606095
-      ],
-      [
-        135.7824919,
-        34.5993823
       ]
     ],
-    "distanceKm": 8.04,
-    "estimatedMinutes": 121
+    "distanceKm": 3.09,
+    "estimatedMinutes": 46
   },
   {
     "name": "7.1. ファミ公アンダーパス",
@@ -7216,18 +7176,10 @@ export const routeSegments: RouteSegment[] = [
       [
         135.84205,
         34.60105
-      ],
-      [
-        135.7851992,
-        34.5986249
-      ],
-      [
-        135.8420464,
-        34.6010498
       ]
     ],
-    "distanceKm": 16.01,
-    "estimatedMinutes": 240
+    "distanceKm": 5.58,
+    "estimatedMinutes": 84
   }
 ];
 export const restPoints: RestPoint[] = [
