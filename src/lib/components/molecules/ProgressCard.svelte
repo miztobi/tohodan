@@ -25,25 +25,21 @@
   // モードに応じたスタイルと値の切り替え
   const isSegmentMode = $derived(appState.progressMode === 'segment');
   
-  // カラーテーマの切り替え (カード背景は常に白、枠線で区別)
-  const cardBgClass = $derived(isSegmentMode ? 'bg-white border-emerald-200 shadow-emerald-100/50' : 'bg-white border-gray-100');
-  const iconBgClass = $derived(isSegmentMode ? 'bg-emerald-100' : 'bg-blue-50');
-  const iconTextClass = $derived(isSegmentMode ? 'text-emerald-600' : 'text-blue-600');
-  const highlightTextClass = $derived(isSegmentMode ? 'text-emerald-600' : 'text-blue-600');
-  const barBgClass = $derived(isSegmentMode ? 'bg-emerald-500' : 'bg-blue-600');
-  
-  // プログレスバーの土台（トラック）の背景色
-  const barTrackClass = $derived(isSegmentMode ? 'bg-white border border-emerald-100' : 'bg-black/5');
+  // 文字色とアイコン色の分岐のみ残す
+  const themeTextClass = $derived(isSegmentMode ? 'text-emerald-600' : 'text-blue-600');
+  const themeIconBgClass = $derived(isSegmentMode ? 'bg-emerald-50' : 'bg-blue-50');
+  const themeBarClass = $derived(isSegmentMode ? 'bg-emerald-500' : 'bg-blue-600');
+  const themeClockIconClass = $derived(isSegmentMode ? 'text-emerald-400' : 'text-blue-400');
 </script>
 
-<div class="p-6 rounded-3xl shadow-xl border space-y-6 transition-all duration-500 {cardBgClass}">
+<div class="p-6 rounded-3xl shadow-xl border border-gray-100 bg-white space-y-6 transition-all duration-300">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="p-3 rounded-2xl {iconBgClass}">
+      <div class="p-3 rounded-2xl {themeIconBgClass}">
         {#if isSegmentMode}
-          <Navigation class="{iconTextClass}" size={28} />
+          <Navigation class="{themeTextClass}" size={28} />
         {:else}
-          <TrendingUp class="{iconTextClass}" size={28} />
+          <TrendingUp class="{themeTextClass}" size={28} />
         {/if}
       </div>
       <div>
@@ -55,13 +51,13 @@
     
     <div class="text-right">
       {#if isSegmentMode}
-        <div class="flex items-baseline gap-1 {highlightTextClass}">
+        <div class="flex items-baseline gap-1 {themeTextClass}">
           <span class="text-sm font-bold opacity-80">残り</span>
           <span class="text-4xl font-black tracking-tighter">{remainingMins}</span>
           <span class="text-lg font-bold">分</span>
         </div>
       {:else}
-        <span class="text-4xl font-black tracking-tighter {highlightTextClass}">
+        <span class="text-4xl font-black tracking-tighter {themeTextClass}">
           {progressRounded}%
         </span>
       {/if}
@@ -69,16 +65,16 @@
   </div>
 
   <!-- プログレスバー -->
-  <div class="w-full {barTrackClass} rounded-full h-6 overflow-hidden shadow-inner relative">
+  <div class="w-full bg-slate-100 rounded-full h-6 overflow-hidden shadow-inner relative">
     <div 
-      class="h-full transition-all duration-700 ease-out shadow-lg {barBgClass}"
+      class="h-full transition-all duration-700 ease-out shadow-lg {themeBarClass}"
       style="width: {isSegmentMode ? segmentProgressPercent : appState.progress}%"
     ></div>
   </div>
 
   <div class="grid grid-cols-2 gap-4 pt-2">
     <div class="flex items-center gap-3 text-gray-500">
-      <Clock size={20} class="{isSegmentMode ? 'text-emerald-400' : 'text-blue-400'}" />
+      <Clock size={20} class="{themeClockIconClass}" />
       <div class="flex flex-col">
         <span class="text-[11px] uppercase font-bold tracking-wider opacity-60">Last Update</span>
         <span class="text-base font-bold text-gray-700">{lastUpdatedText}</span>
@@ -93,7 +89,7 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-2 text-sm text-gray-400 bg-black/5 p-3 rounded-xl border border-white/50">
+  <div class="flex items-center gap-2 text-sm text-gray-400 bg-slate-50 p-3 rounded-xl border border-gray-100">
     <MapPin size={18} />
     {#if appState.currentCoords}
       <span class="font-mono">{appState.currentCoords[1].toFixed(5)}, {appState.currentCoords[0].toFixed(5)}</span>
