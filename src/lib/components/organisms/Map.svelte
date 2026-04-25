@@ -23,9 +23,22 @@
   const routePoints = getGoogleMapsPath();
   const routeLatLngs = routePoints.map(p => ({ lat: p.lat, lng: p.lng }));
 
-  const createIcon = (color: string, label: string = '') => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="${color}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle fill="white" cx="12" cy="9" r="3.5"/><text x="12" y="13" font-size="8" font-weight="bold" fill="${color}" text-anchor="middle">${label}</text></svg>`;
+  // デザインをシンプルに変更（文字なしのピン）
+  const createIcon = (color: string) => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="${color}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle fill="white" cx="12" cy="9" r="3.5"/></svg>`;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  };
+
+  // 吹き出し表示用の共通関数
+  const showInfo = (marker: any, title: string, color: string, description: string = '') => {
+    if (!infoWindow || !map) return;
+    infoWindow.setContent(`
+      <div style='padding: 12px; font-family: sans-serif; min-width: 150px;'>
+        <h3 style='font-weight: 900; font-size: 18px; margin: 0; color: #1e293b; border-bottom: 3px solid ${color}; padding-bottom: 4px;'>${title}</h3>
+        ${description ? `<p style='font-size: 14px; color: #475569; margin-top: 8px;'>${description}</p>` : ''}
+      </div>
+    `);
+    infoWindow.open(map, marker);
   };
 
   async function updateOtherParticipants(maps: any) {
@@ -39,12 +52,18 @@
       const trailer = sorted.length > 1 ? sorted[sorted.length - 1] : null;
 
       if (leader) {
-        if (!leaderMarker) leaderMarker = new maps.Marker({ map, title: '先頭', icon: createIcon('#f59e0b', '先') });
+        if (!leaderMarker) {
+          leaderMarker = new maps.Marker({ map, icon: createIcon('#f59e0b'), title: '先頭' });
+          leaderMarker.addListener('click', () => showInfo(leaderMarker, '先頭集団', '#f59e0b'));
+        }
         leaderMarker.setPosition({ lat: leader.coords[1], lng: leader.coords[0] });
       }
 
       if (trailer) {
-        if (!trailerMarker) trailerMarker = new maps.Marker({ map, title: '最後尾', icon: createIcon('#64748b', '後') });
+        if (!trailerMarker) {
+          trailerMarker = new maps.Marker({ map, icon: createIcon('#64748b'), title: '最後尾' });
+          trailerMarker.addListener('click', () => showInfo(trailerMarker, '最後尾', '#64748b'));
+        }
         trailerMarker.setPosition({ lat: trailer.coords[1], lng: trailer.coords[0] });
       }
     } catch (e) {
@@ -54,12 +73,8 @@
 
   onMount(async () => {
     try {
-      // 読み込み完了を待つ
       const maps = await loadMapLibrary();
-      if (!maps || !mapElement) {
-        console.error("Google Maps not loaded");
-        return;
-      }
+      if (!maps || !mapElement) return;
 
       infoWindow = new maps.InfoWindow();
       const center = routePoints.length > 0 ? routePoints[0] : { lat: 34.618, lng: 135.634 };
@@ -91,41 +106,28 @@
       });
 
       restPoints.forEach((point) => {
-        try {
-          const lat = point.coords[1];
-          const lng = point.coords[0];
-          const actualLat = lat < 90 ? lat : lng;
-          const actualLng = lat < 90 ? lng : lat;
-          const isWarning = point.type === 'warning';
-          
-          const m = new maps.Marker({
-            map: map,
-            position: { lat: actualLat, lng: actualLng },
-            title: point.name,
-            icon: createIcon(isWarning ? '#ef4444' : '#10b981')
-          });
+        const isWarning = point.type === 'warning';
+        const m = new maps.Marker({
+          map: map,
+          position: { lat: point.coords[1] < 90 ? point.coords[1] : point.coords[0], lng: point.coords[1] < 90 ? point.coords[0] : point.coords[1] },
+          title: point.name,
+          icon: createIcon(isWarning ? '#ef4444' : '#10b981')
+        });
 
-          m.addListener('click', () => {
-            const themeColor = isWarning ? '#ef4444' : '#10b981';
-            infoWindow.setContent(`
-              <div style='padding: 12px; font-family: sans-serif; max-width: 220px;'>
-                <h3 style='font-weight: 900; font-size: 20px; margin: 0 0 8px 0; color: #1e293b; border-bottom: 2px solid ${themeColor}; padding-bottom: 4px;'>${point.name}</h3>
-                <p style='font-size: 16px; color: #475569; line-height: 1.5; margin: 0;'>${point.description || "詳細なし"}</p>
-              </div>
-            `);
-            infoWindow.open(map, m);
-          });
-        } catch (e) {
-          console.warn("Rest point render error:", e);
-        }
+        m.addListener('click', () => {
+          showInfo(m, point.name, isWarning ? '#ef4444' : '#10b981', point.description);
+        });
       });
 
       userMarker = new maps.Marker({
         map: map,
         position: appState.currentCoords ? { lat: appState.currentCoords[1], lng: appState.currentCoords[0] } : routeLatLngs[0],
         title: '現在地',
-        icon: createIcon('#3b82f6')
+        icon: createIcon('#3b82f6'),
+        zIndex: 100
       });
+
+      userMarker.addListener('click', () => showInfo(userMarker, 'あなたの現在地', '#3b82f6'));
 
       updateOtherParticipants(maps);
       const interval = setInterval(() => updateOtherParticipants(maps), 30000);
