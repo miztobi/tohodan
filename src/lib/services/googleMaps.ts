@@ -3,17 +3,14 @@ import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 import { browser } from '$app/environment';
 
 if (browser) {
-  // SvelteKitの $env と Viteの import.meta.env の両方を安全にチェック
-  // 本番環境（App Hosting）では $env/static/public が優先されます
-  const apiKey = PUBLIC_GOOGLE_MAPS_API_KEY || (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string);
-
-  if (apiKey && apiKey !== 'YOUR_API_KEY') {
+  // 開発・本番共通でこの一箇所のみを参照します
+  if (PUBLIC_GOOGLE_MAPS_API_KEY) {
     setOptions({
-      apiKey: apiKey,
+      apiKey: PUBLIC_GOOGLE_MAPS_API_KEY,
       version: 'weekly'
     });
   } else {
-    console.error('Google Maps API Key is missing. Check environment variables.');
+    console.error('Google Maps API Key (PUBLIC_GOOGLE_MAPS_API_KEY) is not defined.');
   }
 }
 
