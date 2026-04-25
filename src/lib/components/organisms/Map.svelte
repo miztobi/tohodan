@@ -5,15 +5,23 @@
   import { getGoogleMapsPath, restPoints } from '$lib/services/route';
   import { getAllParticipants } from '$lib/services/location';
 
+  interface Props {
+    activeSegmentPoints?: { lat: number, lng: number }[];
+  }
+
+  let { activeSegmentPoints }: Props = $props();
+
   let mapElement: HTMLDivElement;
-  let map: google.maps.Map | undefined = $state(); // Svelte 5 state
-  let polyline: google.maps.Polyline | undefined;
+  let map: google.maps.Map | undefined = $state();
+  let basePolyline: google.maps.Polyline | undefined;
+  let activePolyline: google.maps.Polyline | undefined;
   let userMarker: any | undefined;
   let leaderMarker: any | undefined;
   let trailerMarker: any | undefined;
   let infoWindow: any | undefined;
 
   const routePoints = getGoogleMapsPath();
+  const routeLatLngs = routePoints.map(p => ({ lat: p.lat, lng: p.lng }));
 
   async function updateOtherParticipants(MarkerLib: any) {
     if (!map || !MarkerLib) return;
@@ -27,7 +35,7 @@
       const trailer = sorted.length > 1 ? sorted[sorted.length - 1] : null;
 
       if (leader) {
-        const leaderPin = new PinElement({ background: '#f59e0b', scale: 1.1, glyph: '先', glyphColor: 'white' });
+        const leaderPin = new PinElement({ background: '#f59e0b', scale: 1.1, glyphText: '先', glyphColor: 'white' });
         if (!leaderMarker) {
           leaderMarker = new AdvancedMarkerElement({ map, content: leaderPin.element, title: '先頭' });
         }
@@ -35,7 +43,7 @@
       }
 
       if (trailer) {
-        const trailerPin = new PinElement({ background: '#64748b', scale: 1.1, glyph: '後', glyphColor: 'white' });
+        const trailerPin = new PinElement({ background: '#64748b', scale: 1.1, glyphText: '後', glyphColor: 'white' });
         if (!trailerMarker) {
           trailerMarker = new AdvancedMarkerElement({ map, content: trailerPin.element, title: '最後尾' });
         }
@@ -53,50 +61,55 @@
         loadMarkerLibrary()
       ]);
 
-      if (!mapsLib || !markerLib || !mapElement) {
-        console.error("Failed to load Maps libraries");
-        return;
-      }
+      if (!mapsLib || !markerLib || !mapElement) return;
 
-      const { Map, Polyline, InfoWindow } = mapsLib as any;
+      const { Map, Polyline, InfoWindow, LatLngBounds } = mapsLib as any;
       const { AdvancedMarkerElement, PinElement } = markerLib as any;
 
       infoWindow = new InfoWindow();
 
-      const center = routePoints.length > 0 ? routePoints[0] : { lat: 34.618, lng: 135.634 };
-
       map = new Map(mapElement, {
-        center: center,
+        center: routeLatLngs[0],
         zoom: 14,
         mapId: 'DEMO_MAP_ID',
         disableDefaultUI: true,
         zoomControl: true,
       });
 
-      polyline = new Polyline({
-        path: routePoints,
+      // ベースのルート（全体、細め、薄め）
+      basePolyline = new Polyline({
+        path: routeLatLngs,
         geodesic: true,
         strokeColor: '#2563eb',
-        strokeOpacity: 0.8,
-        strokeWeight: 6,
+        strokeOpacity: 0.3,
+        strokeWeight: 4,
         map: map
       });
 
-      // 休憩ポイントおよび注意地点の描画
+      // 現在の区間を強調するポリライン
+      activePolyline = new Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#3b82f6',
+        strokeOpacity: 1.0,
+        strokeWeight: 8,
+        zIndex: 10,
+        map: map
+      });
+
       restPoints.forEach((point) => {
         try {
           const lat = point.coords[1];
           const lng = point.coords[0];
           const actualLat = lat < 90 ? lat : lng;
           const actualLng = lat < 90 ? lng : lat;
-
           const isWarning = point.type === 'warning';
           
           const restPin = new PinElement({
-            background: isWarning ? '#ef4444' : '#10b981', // 注意地点は赤、休憩所は緑
+            background: isWarning ? '#ef4444' : '#10b981',
             borderColor: '#ffffff',
             glyphColor: '#ffffff',
-            scale: 1.0
+            scale: 0.9
           });
 
           const m = new AdvancedMarkerElement({
@@ -106,7 +119,7 @@
             title: point.name
           });
 
-          m.addListener('click', () => {
+          m.addListener('gmp-click', () => {
             const themeColor = isWarning ? '#ef4444' : '#10b981';
             infoWindow.setContent(`
               <div style='padding: 12px; font-family: sans-serif; max-width: 220px;'>
@@ -130,7 +143,7 @@
 
       userMarker = new AdvancedMarkerElement({
         map: map,
-        position: appState.currentCoords ? { lat: appState.currentCoords[1], lng: appState.currentCoords[0] } : center,
+        position: appState.currentCoords ? { lat: appState.currentCoords[1], lng: appState.currentCoords[0] } : routeLatLngs[0],
         content: userPin.element,
         title: '現在地'
       });
@@ -144,11 +157,35 @@
     }
   });
 
+  // モードや区間データが変わった時の地図制御
+  $effect(() => {
+    if (!map) return;
+
+    if (appState.progressMode === 'total') {
+      // 全体表示: ルート全体が収まるように調整
+      const bounds = new google.maps.LatLngBounds();
+      routeLatLngs.forEach(p => bounds.extend(p));
+      map.fitBounds(bounds, 50); // padding: 50px
+      if (activePolyline) activePolyline.setPath([]);
+    } else {
+      // 区間表示: 現在の区間を拡大し、強調表示
+      if (activeSegmentPoints && activeSegmentPoints.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        activeSegmentPoints.forEach(p => bounds.extend(p));
+        map.fitBounds(bounds, 80); // padding: 80px
+
+        if (activePolyline) {
+          activePolyline.setPath(activeSegmentPoints);
+          activePolyline.setOptions({ strokeColor: '#10b981', strokeWeight: 10 });
+        }
+      }
+    }
+  });
+
   $effect(() => {
     if (appState.currentCoords && userMarker && map) {
       const position = { lat: appState.currentCoords[1], lng: appState.currentCoords[0] };
       userMarker.position = position;
-      map.panTo(position);
     }
   });
 </script>

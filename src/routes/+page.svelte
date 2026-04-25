@@ -9,12 +9,10 @@
   import { auth } from '$lib/services/firebase';
   import { appState } from '$lib/stores/appState.svelte';
   import { routeSegments, activeRoute } from '$lib/services/route';
-  import { Footprints, History, MapPin, Clock } from 'lucide-svelte';
+  import { Footprints, History, MapPin, Clock, AlertTriangle } from 'lucide-svelte';
 
-  // 全体の合計距離を計算
   const totalDistance = routeSegments.reduce((acc, s) => acc + s.distanceKm, 0);
 
-  // 現在の進捗状況から、どの区間にいるか、およびその区間内での進捗状況を計算する
   const segmentData = $derived.by(() => {
     let accumulatedDistance = 0;
     const currentDistance = (appState.progress / 100) * totalDistance;
@@ -24,12 +22,8 @@
       const segmentEndDist = accumulatedDistance + segment.distanceKm;
       
       if (currentDistance <= segmentEndDist || segment === routeSegments[routeSegments.length - 1]) {
-        // この区間における進行距離
         const distanceInSegment = Math.max(0, currentDistance - segmentStartDist);
-        // 区間内進捗率 (0.0 ~ 1.0)
         const segmentProgressRatio = Math.min(1, distanceInSegment / segment.distanceKm);
-        
-        // 予想経過分数と予想残り分数を計算
         const estimatedMinutesPassed = Math.round(segment.estimatedMinutes * segmentProgressRatio);
         const estimatedMinutesRemaining = Math.max(0, segment.estimatedMinutes - estimatedMinutesPassed);
 
@@ -37,7 +31,9 @@
           segment,
           segmentProgressRatio,
           estimatedMinutesPassed,
-          estimatedMinutesRemaining
+          estimatedMinutesRemaining,
+          // Googleマップ用の座標形式に変換して渡す
+          points: segment.points.map(p => ({ lat: p[1], lng: p[0] }))
         };
       }
       accumulatedDistance += segment.distanceKm;
@@ -86,7 +82,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-slate-50 flex flex-col items-center p-6 pb-20">
+<div class="min-h-screen bg-slate-50 flex flex-col items-center p-6 pb-24">
   <div class="w-full max-w-md space-y-6">
     <header class="pt-6 pb-2 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -103,9 +99,9 @@
       </button>
     </header>
 
-    <Map />
+    <!-- 地図セクション（現在の区間の座標を渡す） -->
+    <Map activeSegmentPoints={segmentData?.points} />
 
-    <!-- 現在の区間情報 -->
     {#if segmentData?.segment}
       <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-6 rounded-[2rem] shadow-2xl flex items-center justify-between border-b-4 border-blue-800">
         <div class="space-y-2">
@@ -125,8 +121,7 @@
       </div>
     {/if}
 
-    <!-- タブ切り替えUI -->
-    <div class="flex bg-gray-200/60 p-1.5 rounded-2xl shadow-inner mb-4">
+    <div class="flex bg-gray-200/60 p-1.5 rounded-2xl shadow-inner">
       <button
         onclick={() => appState.progressMode = 'total'}
         class="flex-1 py-3 text-lg font-bold rounded-xl transition-all duration-300 {appState.progressMode === 'total' ? 'bg-white text-blue-600 shadow-md' : 'text-gray-500 hover:text-gray-700'}"
@@ -143,7 +138,7 @@
 
     <ProgressCard {segmentData} />
 
-    <div class="space-y-6 pt-4">
+    <div class="space-y-4 pt-4">
       <Button 
         onclick={handleUpdateLocation} 
         disabled={appState.isTracking}
@@ -157,6 +152,14 @@
           現在地を更新
         {/if}
       </Button>
+
+      <!-- 電池の消耗に関する注意書き -->
+      <div class="flex items-start gap-2 px-4 py-2 text-slate-500">
+        <AlertTriangle size={16} class="shrink-0 text-amber-500 mt-0.5" />
+        <p class="text-[13px] font-bold leading-relaxed">
+          頻繁に更新ボタンを押すと、スマートフォンの電池の消耗が激しくなります。休憩時などの確認に留めることをお勧めします。
+        </p>
+      </div>
 
       {#if appState.error}
         <div class="p-4 bg-red-50 border-2 border-red-100 rounded-2xl text-center shadow-sm">
