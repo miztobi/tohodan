@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Button from '$lib/components/atoms/Button.svelte';
   import ProgressCard from '$lib/components/molecules/ProgressCard.svelte';
   import Map from '$lib/components/organisms/Map.svelte';
   import { getCurrentLocation } from '$lib/services/location';
   import { calculateRouteProgress } from '$lib/utils/routeProgress';
+  import { saveProgress, getLatestProgress } from '$lib/services/history';
+  import { auth } from '$lib/services/firebase';
   import { appState } from '$lib/stores/appState.svelte';
-  import { Footprints } from 'lucide-svelte';
+  import { Footprints, History } from 'lucide-svelte';
 
-  // サンプルルートデータ（Turf.js用 [lng, lat]）
   const dummyRoute: [number, number][] = [
     [139.7671, 35.6812],
     [139.7611, 35.6852],
@@ -15,16 +17,40 @@
     [139.7450, 35.6812]
   ];
 
+  onMount(() => {
+    // ログイン状態を確認してから最新データを復元
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const latest = await getLatestProgress(user.uid);
+        if (latest) {
+          appState.updateLocation(latest.coords, latest.progress);
+        }
+      }
+    });
+    return unsubscribe;
+  });
+
   async function handleUpdateLocation() {
     appState.setTracking(true);
     appState.setError(null);
 
     try {
+      // 1. 位置情報取得
       const coords = await getCurrentLocation();
+      
+      // 2. 進捗計算
       const progress = calculateRouteProgress(coords, dummyRoute);
+      
+      // 3. ストア更新
       appState.updateLocation(coords, progress);
+
+      // 4. Firestore に保存
+      const user = auth.currentUser;
+      if (user) {
+        await saveProgress(user.uid, coords, progress);
+      }
     } catch (e: any) {
-      appState.setError(e.message || '位置情報の取得に失敗しました');
+      appState.setError(e.message || '更新または保存に失敗しました');
     } finally {
       appState.setTracking(false);
     }
@@ -33,23 +59,24 @@
 
 <div class="min-h-screen bg-slate-50 flex flex-col items-center p-4 pb-12">
   <div class="w-full max-w-md space-y-6">
-    <header class="pt-8 pb-4 flex items-center gap-3">
-      <div class="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
-        <Footprints class="text-white" size={28} />
+    <header class="pt-8 pb-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
+          <Footprints class="text-white" size={28} />
+        </div>
+        <div>
+          <h1 class="text-2xl font-black text-slate-900 tracking-tight">tohodan</h1>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Route Tracker</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-black text-slate-900 tracking-tight">tohodan</h1>
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Route Tracker</p>
-      </div>
+      <button class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+        <History size={24} />
+      </button>
     </header>
 
-    <!-- 地図セクション -->
     <Map />
-
-    <!-- 進捗カードセクション -->
     <ProgressCard />
 
-    <!-- 操作セクション -->
     <div class="space-y-4">
       <Button 
         onclick={handleUpdateLocation} 
@@ -58,7 +85,7 @@
       >
         {#if appState.isTracking}
           <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-          更新中...
+          保存中...
         {:else}
           現在地を更新
         {/if}
@@ -66,22 +93,16 @@
 
       {#if appState.error}
         <div class="p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p class="text-red-500 text-xs text-center font-semibold">{appState.error}</p>
+          <p class="text-red-500 text-[10px] text-center font-semibold leading-tight">{appState.error}</p>
         </div>
       {/if}
     </div>
 
     <footer class="pt-4 text-center">
       <p class="text-[10px] text-slate-400 font-medium leading-relaxed">
-        バッテリー節約のため、手動更新時のみGPSを使用します。<br>
-        正確な進捗計算には Turf.js を使用しています。
+        データはクラウドに安全に保存され、<br>
+        次回のアクセス時にも自動的に復元されます。
       </p>
     </footer>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    background-color: #f8fafc;
-  }
-</style>
