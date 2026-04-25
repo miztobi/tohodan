@@ -38,10 +38,9 @@
         map: map
       });
 
-      // 1. 休憩地点マーカーの追加
       restPoints.forEach(point => {
         const restPin = new PinElement({
-          background: '#10b981', // green-500
+          background: '#10b981',
           borderColor: '#ffffff',
           glyphColor: '#ffffff',
           scale: 0.8
@@ -55,10 +54,12 @@
         });
 
         const infoWindow = new InfoWindow({
-          content: \`<div style="padding: 8px;">
-            <h3 style="font-weight: bold; margin-bottom: 4px;">\${point.name}</h3>
-            <p style="font-size: 11px; color: #666;">\${point.description}</p>
-          </div>\`
+          content: `
+            <div style="padding: 8px;">
+              <h3 style="font-weight: bold; margin-bottom: 4px; color: #1e293b;">${point.name}</h3>
+              <p style="font-size: 11px; color: #64748b;">${point.description}</p>
+            </div>
+          `
         });
 
         m.addListener('click', () => {
@@ -66,7 +67,6 @@
         });
       });
 
-      // 2. ユーザーマーカーの作成
       const userPin = new PinElement({
         background: '#3b82f6',
         borderColor: '#ffffff',
@@ -95,6 +95,6 @@
 
 <div bind:this={mapElement} class="w-full h-[300px] rounded-2xl shadow-inner bg-gray-100 flex items-center justify-center">
   {#if !map}
-    <p class="text-xs text-slate-400">地図を読み込み中...</p>
+    <p class="text-xs text-slate-400 font-medium">地図を読み込み中...</p>
   {/if}
 </div>
