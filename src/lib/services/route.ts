@@ -7156,6 +7156,7 @@ export const routeSegments: RouteSegment[] = [
   }
 ];
 export const restPoints: RestPoint[] = [
+  { 'name': 'スタート', 'description': '髙安大教会', 'coords': [34.61881282789275, 135.6339853269571], 'type': 'rest' },
   { 'name': '恩智神社', 'description': '駐車場にて10分休憩', 'coords': [135.6379812, 34.6080284], 'type': 'rest' },
   { 'name': '山中電波不安定', 'description': '', 'coords': [135.6437319, 34.6086995], 'type': 'warning' },
   { 'name': 'のどか下', 'description': 'トイレ前のベンチ等で10分休憩', 'coords': [135.6707546, 34.6038592], 'type': 'rest' },
@@ -7168,6 +7169,7 @@ export const restPoints: RestPoint[] = [
   { 'name': '車注意', 'description': '', 'coords': [34.60251114, 135.72844093], 'type': 'warning' },
   { 'name': '安堵町役場', 'description': '10分休憩', 'coords': [135.756761, 34.60604], 'type': 'rest' },
   { 'name': 'ファミリー公園', 'description': '10分休憩', 'coords': [135.7822805, 34.599267], 'type': 'rest' },
+  { 'name': 'ゴール', 'description': '天理教教会本部', 'coords': [34.60124089938341, 135.84043953784618], 'type': 'rest' },
   { 'name': 'アンダーパス', 'description': '歩行者用の通路があります', 'coords': [135.7850572, 34.5986649], 'type': 'warning' },
   { 'name': '分かれ道注意', 'description': '', 'coords': [135.6468251, 34.6065459], 'type': 'warning' }
 ];

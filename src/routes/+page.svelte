@@ -90,8 +90,8 @@
           <Footprints class="text-white" size={32} />
         </div>
         <div>
-          <h1 class="text-3xl font-black text-slate-900 tracking-tighter">tohodan</h1>
-          <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Group Walk Support</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tighter">徒歩団参</h1>
+          <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Supported by 青年会髙安分会</p>
         </div>
       </div>
       <button class="p-3 bg-white text-slate-400 hover:text-blue-600 rounded-2xl shadow-sm border border-slate-100 transition-colors">
@@ -157,7 +157,7 @@
       <div class="flex items-start gap-2 px-4 py-2 text-slate-500">
         <AlertTriangle size={16} class="shrink-0 text-amber-500 mt-0.5" />
         <p class="text-[13px] font-bold leading-relaxed">
-          頻繁に更新ボタンを押すと、スマートフォンの電池の消耗が激しくなります。休憩時などの確認に留めることをお勧めします。
+          頻繁に更新ボタンを押すと、電池の消耗が激しくなります。
         </p>
       </div>
 
