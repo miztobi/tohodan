@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { appState } from '$lib/stores/appState.svelte';
   import { MapPin, TrendingUp, Clock, Navigation } from 'lucide-svelte';
   import dayjs from 'dayjs';

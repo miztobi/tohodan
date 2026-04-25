@@ -7157,7 +7157,7 @@ export const routeSegments: RouteSegment[] = [
 ];
 export const restPoints: RestPoint[] = [
   { 'name': 'スタート', 'description': '髙安大教会', 'coords': [34.61881282789275, 135.6339853269571], 'type': 'rest' },
-  { 'name': '恩智神社', 'description': '駐車場にて10分休憩', 'coords': [135.6379812, 34.6080284], 'type': 'rest' },
+  { 'name': '恩智神社', 'description': '駐車場にて10分休憩', 'coords': [34.60709589732455, 135.6381805649402], 'type': 'rest' },
   { 'name': '山中電波不安定', 'description': '', 'coords': [135.6437319, 34.6086995], 'type': 'warning' },
   { 'name': 'のどか下', 'description': 'トイレ前のベンチ等で10分休憩', 'coords': [135.6707546, 34.6038592], 'type': 'rest' },
   { 'name': '信貴山トイレ', 'description': 'トイレ程度。', 'coords': [135.6780602, 34.6066763], 'type': 'rest' },
