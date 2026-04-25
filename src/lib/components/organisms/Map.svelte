@@ -23,11 +23,24 @@
   const routePoints = getGoogleMapsPath();
   const routeLatLngs = routePoints.map(p => ({ lat: p.lat, lng: p.lng }));
 
+  // カスタムSVGアイコンの定義
+  const createIcon = (color: string, label: string = '') => {
+    // 従来のマーカー用のカスタムSVG
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+        <path fill="${color}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+        <circle fill="white" cx="12" cy="9" r="3.5"/>
+        <text x="12" y="13" font-size="8" font-weight="bold" fill="${color}" text-anchor="middle">${label}</text>
+      </svg>
+    `;
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  };
+
   async function updateOtherParticipants(MarkerLib: any) {
     if (!map || !MarkerLib) return;
     try {
       const participants = await getAllParticipants();
-      const { AdvancedMarkerElement, PinElement } = MarkerLib;
+      const { Marker } = MarkerLib; // 従来のMarkerを使用
       const sorted = [...participants].sort((a, b) => b.progress - a.progress);
       if (sorted.length === 0) return;
 
@@ -35,19 +48,17 @@
       const trailer = sorted.length > 1 ? sorted[sorted.length - 1] : null;
 
       if (leader) {
-        const leaderPin = new PinElement({ background: '#f59e0b', scale: 1.1, glyphText: '先', glyphColor: 'white' });
         if (!leaderMarker) {
-          leaderMarker = new AdvancedMarkerElement({ map, content: leaderPin, title: '先頭' });
+          leaderMarker = new Marker({ map, title: '先頭', icon: createIcon('#f59e0b', '先') });
         }
-        leaderMarker.position = { lat: leader.coords[1], lng: leader.coords[0] };
+        leaderMarker.setPosition({ lat: leader.coords[1], lng: leader.coords[0] });
       }
 
       if (trailer) {
-        const trailerPin = new PinElement({ background: '#64748b', scale: 1.1, glyphText: '後', glyphColor: 'white' });
         if (!trailerMarker) {
-          trailerMarker = new AdvancedMarkerElement({ map, content: trailerPin, title: '最後尾' });
+          trailerMarker = new Marker({ map, title: '最後尾', icon: createIcon('#64748b', '後') });
         }
-        trailerMarker.position = { lat: trailer.coords[1], lng: trailer.coords[0] };
+        trailerMarker.setPosition({ lat: trailer.coords[1], lng: trailer.coords[0] });
       }
     } catch (e) {
       console.error("Participants sync error:", e);
@@ -64,14 +75,16 @@
       if (!mapsLib || !markerLib || !mapElement) return;
 
       const { Map, Polyline, InfoWindow } = mapsLib as any;
-      const { AdvancedMarkerElement, PinElement } = markerLib as any;
+      const { Marker } = markerLib as any; // 従来のMarkerを使用
 
       infoWindow = new InfoWindow();
 
+      const center = routePoints.length > 0 ? routePoints[0] : { lat: 34.618, lng: 135.634 };
+
+      // mapId を完全に削除
       map = new Map(mapElement, {
-        center: routeLatLngs[0],
+        center: center,
         zoom: 14,
-        mapId: '25dcd9f1a5d2a19b5a41a638', // 課金設定が完全に反映されればこのままでも動くはずです
         disableDefaultUI: true,
         zoomControl: true,
       });
@@ -103,21 +116,14 @@
           const actualLng = lat < 90 ? lng : lat;
           const isWarning = point.type === 'warning';
           
-          const restPin = new PinElement({
-            background: isWarning ? '#ef4444' : '#10b981',
-            borderColor: '#ffffff',
-            glyphColor: '#ffffff',
-            scale: 0.9
-          });
-
-          const m = new AdvancedMarkerElement({
+          const m = new Marker({
             map: map,
             position: { lat: actualLat, lng: actualLng },
-            content: restPin, // .elementを削除
-            title: point.name
+            title: point.name,
+            icon: createIcon(isWarning ? '#ef4444' : '#10b981')
           });
 
-          m.addListener('gmp-click', () => {
+          m.addListener('click', () => {
             const themeColor = isWarning ? '#ef4444' : '#10b981';
             infoWindow.setContent(`
               <div style='padding: 12px; font-family: sans-serif; max-width: 220px;'>
@@ -132,18 +138,11 @@
         }
       });
 
-      const userPin = new PinElement({
-        background: '#3b82f6',
-        borderColor: '#ffffff',
-        glyphColor: '#ffffff',
-        scale: 1.4
-      });
-
-      userMarker = new AdvancedMarkerElement({
+      userMarker = new Marker({
         map: map,
         position: appState.currentCoords ? { lat: appState.currentCoords[1], lng: appState.currentCoords[0] } : routeLatLngs[0],
-        content: userPin, // .elementを削除
-        title: '現在地'
+        title: '現在地',
+        icon: createIcon('#3b82f6')
       });
 
       updateOtherParticipants(markerLib);
@@ -178,7 +177,7 @@
   $effect(() => {
     if (appState.currentCoords && userMarker && map) {
       const position = { lat: appState.currentCoords[1], lng: appState.currentCoords[0] };
-      userMarker.position = position;
+      userMarker.setPosition(position);
     }
   });
 </script>
