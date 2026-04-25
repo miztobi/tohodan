@@ -8,17 +8,10 @@
   import { saveProgress, getLatestProgress } from '$lib/services/history';
   import { auth } from '$lib/services/firebase';
   import { appState } from '$lib/stores/appState.svelte';
+  import { activeRoute } from '$lib/services/route';
   import { Footprints, History } from 'lucide-svelte';
 
-  const dummyRoute: [number, number][] = [
-    [139.7671, 35.6812],
-    [139.7611, 35.6852],
-    [139.7528, 35.6852],
-    [139.7450, 35.6812]
-  ];
-
   onMount(() => {
-    // ログイン状態を確認してから最新データを復元
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         const latest = await getLatestProgress(user.uid);
@@ -35,16 +28,10 @@
     appState.setError(null);
 
     try {
-      // 1. 位置情報取得
       const coords = await getCurrentLocation();
-      
-      // 2. 進捗計算
-      const progress = calculateRouteProgress(coords, dummyRoute);
-      
-      // 3. ストア更新
+      const progress = calculateRouteProgress(coords, activeRoute);
       appState.updateLocation(coords, progress);
 
-      // 4. Firestore に保存
       const user = auth.currentUser;
       if (user) {
         await saveProgress(user.uid, coords, progress);
