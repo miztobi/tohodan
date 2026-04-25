@@ -71,7 +71,7 @@
       map = new Map(mapElement, {
         center: routeLatLngs[0],
         zoom: 14,
-        mapId: 'DEMO_MAP_ID', // 課金設定が完全に反映されればこのままでも動くはずです
+        mapId: '25dcd9f1a5d2a19b5a41a638', // 課金設定が完全に反映されればこのままでも動くはずです
         disableDefaultUI: true,
         zoomControl: true,
       });
