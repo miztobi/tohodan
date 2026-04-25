@@ -1,29 +1,30 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { loadGoogleMaps } from '$lib/services/googleMaps';
+  import { loadMapLibrary, loadMarkerLibrary } from '$lib/services/googleMaps';
   import { appState } from '$lib/stores/appState.svelte';
   import { getGoogleMapsPath } from '$lib/services/route';
 
   let mapElement: HTMLDivElement;
   let map: google.maps.Map;
   let polyline: google.maps.Polyline;
-  let marker: google.maps.Marker;
+  let marker: any; // AdvancedMarkerElement
 
   const routePoints = getGoogleMapsPath();
 
   onMount(async () => {
-    await loadGoogleMaps();
+    const { Map } = await loadMapLibrary();
+    const { AdvancedMarkerElement, PinElement } = await loadMarkerLibrary();
 
-    map = new google.maps.Map(mapElement, {
+    // 1. 地図の初期化
+    map = new Map(mapElement, {
       center: routePoints[0] || { lat: 35.6812, lng: 139.7671 },
       zoom: 13,
+      mapId: 'DEMO_MAP_ID', // AdvancedMarkerにはMap IDが必要（デモ用）
       disableDefaultUI: true,
       zoomControl: true,
-      styles: [
-        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-      ]
     });
 
+    // 2. ルート（線）の描画
     polyline = new google.maps.Polyline({
       path: routePoints,
       geodesic: true,
@@ -33,22 +34,28 @@
       map: map
     });
 
-    marker = new google.maps.Marker({
-      map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: '#ef4444',
-        fillOpacity: 1,
-        strokeWeight: 2,
-        strokeColor: '#ffffff',
-        scale: 8
-      }
+    // 3. 現在地マーカー（ピン）の作成
+    const pin = new PinElement({
+      background: '#ef4444',
+      borderColor: '#ffffff',
+      glyphColor: '#ffffff',
+      scale: 1.2
     });
 
+    marker = new AdvancedMarkerElement({
+      map: map,
+      content: pin.element,
+      title: '現在地'
+    });
+
+    // リアクティブな位置更新
     $effect(() => {
-      if (appState.currentCoords) {
-        const position = { lat: appState.currentCoords[1], lng: appState.currentCoords[0] };
-        marker.setPosition(position);
+      if (appState.currentCoords && marker) {
+        const position = { 
+          lat: appState.currentCoords[1], 
+          lng: appState.currentCoords[0] 
+        };
+        marker.position = position;
         map.panTo(position);
       }
     });
