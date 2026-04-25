@@ -1,35 +1,21 @@
-import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+import { importLibrary } from '@googlemaps/js-api-loader';
 import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 import { browser } from '$app/environment';
 
-if (browser) {
-  // 開発・本番共通でこの一箇所のみを参照します
-  if (PUBLIC_GOOGLE_MAPS_API_KEY) {
-    setOptions({
-      apiKey: PUBLIC_GOOGLE_MAPS_API_KEY,
-      version: 'weekly'
-    });
-  } else {
-    console.error('Google Maps API Key (PUBLIC_GOOGLE_MAPS_API_KEY) is not defined.');
-  }
-}
-
 export async function loadMapLibrary() {
-  if (!browser) return null;
+  if (!browser || !PUBLIC_GOOGLE_MAPS_API_KEY) return null;
   try {
-    return await importLibrary('maps');
+    // 最小限の 'maps' ライブラリのみを読み込む（テストHTMLと同じ条件）
+    return await importLibrary('maps', {
+      apiKey: PUBLIC_GOOGLE_MAPS_API_KEY
+    });
   } catch (e) {
     console.error('Failed to load Google Maps library:', e);
     return null;
   }
 }
 
+// markerライブラリの個別読み込みはやめる（必要ならmapsから取る）
 export async function loadMarkerLibrary() {
-  if (!browser) return null;
-  try {
-    return await importLibrary('marker');
-  } catch (e) {
-    console.error('Failed to load Google Maps Marker library:', e);
-    return null;
-  }
+  return loadMapLibrary();
 }
