@@ -1,21 +1,29 @@
-import { importLibrary } from '@googlemaps/js-api-loader';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 import { browser } from '$app/environment';
 
 export async function loadMapLibrary() {
-  if (!browser || !PUBLIC_GOOGLE_MAPS_API_KEY) return null;
+  if (!browser || !PUBLIC_GOOGLE_MAPS_API_KEY) {
+    console.warn('Map load skipped: Not in browser or API key is missing.');
+    return null;
+  }
+
   try {
-    // 最小限の 'maps' ライブラリのみを読み込む（テストHTMLと同じ条件）
-    return await importLibrary('maps', {
-      apiKey: PUBLIC_GOOGLE_MAPS_API_KEY
+    // 確実にキーを設定（テストHTMLの <script> 相当）
+    setOptions({
+      apiKey: PUBLIC_GOOGLE_MAPS_API_KEY,
+      version: 'weekly',
     });
+
+    // 最小限のマップコア機能のみを読み込む
+    return await importLibrary('maps');
   } catch (e) {
     console.error('Failed to load Google Maps library:', e);
     return null;
   }
 }
 
-// markerライブラリの個別読み込みはやめる（必要ならmapsから取る）
+// 互換性のため残すが、実態はマップ機能から取り出す
 export async function loadMarkerLibrary() {
   return loadMapLibrary();
 }
