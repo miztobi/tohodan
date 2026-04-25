@@ -10,11 +10,12 @@ export interface RestPoint {
   name: string;
   description: string;
   coords: [number, number];
+  type?: "rest" | "warning";
 }
 
 export const routeSegments: RouteSegment[] = [
   {
-    "name": "1. 大教会〜恩智神社 30min",
+    "name": "1. 大教会〜恩智神社",
     "points": [
       [
         135.63475,
@@ -1045,7 +1046,7 @@ export const routeSegments: RouteSegment[] = [
     "estimatedMinutes": 29
   },
   {
-    "name": "2. 恩智神社〜のどか下 40min",
+    "name": "2. 恩智神社〜のどか下",
     "points": [
       [
         135.6381498,
@@ -1760,7 +1761,7 @@ export const routeSegments: RouteSegment[] = [
     "estimatedMinutes": 59
   },
   {
-    "name": "3. のどか下〜信貴山バス停 30min",
+    "name": "3. のどか下〜信貴山バス停",
     "points": [
       [
         135.67047,
@@ -2443,7 +2444,7 @@ export const routeSegments: RouteSegment[] = [
     "estimatedMinutes": 22
   },
   {
-    "name": "4. 信貴山バス停〜竜田川 40min",
+    "name": "4. 信貴山バス停〜竜田川",
     "points": [
       [
         135.67835,
@@ -4429,7 +4430,7 @@ export const routeSegments: RouteSegment[] = [
     "estimatedMinutes": 62
   },
   {
-    "name": "6. 安堵町役場〜ファミ公 40min",
+    "name": "6. 安堵町役場〜ファミ公",
     "points": [
       [
         135.75671,
@@ -5560,43 +5561,15 @@ export const routeSegments: RouteSegment[] = [
     "estimatedMinutes": 46
   },
   {
-    "name": "7.1. ファミ公アンダーパス",
+    "name": "7. ファミ公〜天理",
     "points": [
-      [
-        135.7825055,
-        34.5993772
-      ],
-      [
-        135.7835462,
-        34.5989754
-      ],
-      [
-        135.7841028,
-        34.5986177
-      ],
-      [
-        135.7843583,
-        34.5987634
-      ],
-      [
-        135.784777,
-        34.5987563
-      ],
-      [
-        135.784949,
-        34.5986133
-      ],
-      [
-        135.7851971,
-        34.5986155
-      ]
-    ],
-    "distanceKm": 0.28,
-    "estimatedMinutes": 4
-  },
-  {
-    "name": "7. ファミ公〜天理 80min",
-    "points": [
+      [135.7825055, 34.5993772],
+      [135.7835462, 34.5989754],
+      [135.7841028, 34.5986177],
+      [135.7843583, 34.5987634],
+      [135.784777, 34.5987563],
+      [135.784949, 34.5986133],
+      [135.7851971, 34.5986155],
       [
         135.7852,
         34.59862
@@ -7178,99 +7151,25 @@ export const routeSegments: RouteSegment[] = [
         34.60105
       ]
     ],
-    "distanceKm": 5.58,
-    "estimatedMinutes": 84
+    "distanceKm": 5.86,
+    "estimatedMinutes": 88
   }
 ];
 export const restPoints: RestPoint[] = [
-  {
-    "name": "恩智神社",
-    "description": "駐車場にて10分休憩",
-    "coords": [
-      135.6379812,
-      34.6080284
-    ]
-  },
-  {
-    "name": "山中電波不安定",
-    "description": "",
-    "coords": [
-      135.6437319,
-      34.6086995
-    ]
-  },
-  {
-    "name": "のどか下",
-    "description": "トイレ前のベンチ等で10分休憩",
-    "coords": [
-      135.6707546,
-      34.6038592
-    ]
-  },
-  {
-    "name": "信貴山トイレ",
-    "description": "トイレ程度。",
-    "coords": [
-      135.6780602,
-      34.6066763
-    ]
-  },
-  {
-    "name": "足元注意",
-    "description": "葉の滑り、ぬかるみ注意",
-    "coords": [
-      135.6828569,
-      34.6056428
-    ]
-  },
-  {
-    "name": "小休憩可",
-    "description": "場合に応じて小休憩",
-    "coords": [
-      135.6946498,
-      34.6012908
-    ]
-  },
-  {
-    "name": "昼休憩",
-    "description": "お弁当配布",
-    "coords": [
-      135.7173171,
-      34.6031341
-    ]
-  },
-  {
-    "name": "安堵町役場",
-    "description": "10分休憩",
-    "coords": [
-      135.756761,
-      34.60604
-    ]
-  },
-  {
-    "name": "ファミリー公園",
-    "description": "10分休憩",
-    "coords": [
-      135.7822805,
-      34.599267
-    ]
-  },
-  {
-    "name": "アンダーパス",
-    "description": "歩行者用の通路があります",
-    "coords": [
-      135.7850572,
-      34.5986649
-    ]
-  },
-  {
-    "name": "分かれ道注意",
-    "description": "",
-    "coords": [
-      135.6468251,
-      34.6065459
-    ]
-  }
+  { 'name': '恩智神社', 'description': '駐車場にて10分休憩', 'coords': [135.6379812, 34.6080284], 'type': 'rest' },
+  { 'name': '山中電波不安定', 'description': '', 'coords': [135.6437319, 34.6086995], 'type': 'warning' },
+  { 'name': 'のどか下', 'description': 'トイレ前のベンチ等で10分休憩', 'coords': [135.6707546, 34.6038592], 'type': 'rest' },
+  { 'name': '信貴山トイレ', 'description': 'トイレ程度。', 'coords': [135.6780602, 34.6066763], 'type': 'rest' },
+  { 'name': '足元注意', 'description': '葉の滑り、ぬかるみ注意', 'coords': [135.6828569, 34.6056428], 'type': 'warning' },
+  { 'name': '小休憩可', 'description': '場合に応じて小休憩', 'coords': [135.6946498, 34.6012908], 'type': 'rest' },
+  { 'name': '昼休憩', 'description': 'お弁当配布', 'coords': [135.7173171, 34.6031341], 'type': 'rest' },
+  { 'name': 'トイレ', 'description': '', 'coords': [135.71768269, 34.60431971], 'type': 'warning' },
+  { 'name': 'トイレ', 'description': '', 'coords': [135.71758329, 34.60221382], 'type': 'warning' },
+  { 'name': '車注意', 'description': '', 'coords': [34.60251114, 135.72844093], 'type': 'warning' },
+  { 'name': '安堵町役場', 'description': '10分休憩', 'coords': [135.756761, 34.60604], 'type': 'rest' },
+  { 'name': 'ファミリー公園', 'description': '10分休憩', 'coords': [135.7822805, 34.599267], 'type': 'rest' },
+  { 'name': 'アンダーパス', 'description': '歩行者用の通路があります', 'coords': [135.7850572, 34.5986649], 'type': 'warning' },
+  { 'name': '分かれ道注意', 'description': '', 'coords': [135.6468251, 34.6065459], 'type': 'warning' }
 ];
 
 export const activeRoute: [number, number][] = routeSegments.flatMap(s => s.points);
