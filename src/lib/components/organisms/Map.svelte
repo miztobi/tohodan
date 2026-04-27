@@ -3,7 +3,7 @@
   import { loadMapLibrary } from '$lib/services/googleMaps';
   import { appState } from '$lib/stores/appState.svelte';
   import { getGoogleMapsPath, restPoints } from '$lib/services/route';
-  import { getAllParticipants } from '$lib/services/location';
+  import { getActiveExtremes } from '$lib/services/location';
 
   interface Props {
     activeSegmentPoints?: { lat: number, lng: number }[];
@@ -23,13 +23,11 @@
   const routePoints = getGoogleMapsPath();
   const routeLatLngs = routePoints.map(p => ({ lat: p.lat, lng: p.lng }));
 
-  // デザインをシンプルに変更（文字なしのピン）
   const createIcon = (color: string) => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="${color}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle fill="white" cx="12" cy="9" r="3.5"/></svg>`;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
   };
 
-  // 吹き出し表示用の共通関数
   const showInfo = (marker: any, title: string, color: string, description: string = '') => {
     if (!infoWindow || !map) return;
     infoWindow.setContent(`
@@ -44,24 +42,22 @@
   async function updateOtherParticipants(maps: any) {
     if (!map || !maps) return;
     try {
-      const participants = await getAllParticipants();
-      const sorted = [...participants].sort((a, b) => b.progress - a.progress);
-      if (sorted.length === 0) return;
-
-      const leader = sorted[0];
-      const trailer = sorted.length > 1 ? sorted[sorted.length - 1] : null;
+      const { leader, trailer } = await getActiveExtremes();
 
       if (leader) {
+        const timeText = leader.minutesAgo !== undefined ? `(${leader.minutesAgo}分前)` : '';
         if (!leaderMarker) {
-          leaderMarker = new maps.Marker({ map, icon: createIcon('#f59e0b'), title: '先頭' });
-          leaderMarker.addListener('click', () => showInfo(leaderMarker, '先頭集団', '#f59e0b'));
+          leaderMarker = new maps.Marker({ map, icon: createIcon('#f59e0b') });
         }
         leaderMarker.setPosition({ lat: leader.coords[1], lng: leader.coords[0] });
+        // クリックイベントの更新（時間が変わるため）
+        maps.event.clearListeners(leaderMarker, 'click');
+        leaderMarker.addListener('click', () => showInfo(leaderMarker, '先頭集団', '#f59e0b', timeText));
       }
 
       if (trailer) {
         if (!trailerMarker) {
-          trailerMarker = new maps.Marker({ map, icon: createIcon('#64748b'), title: '最後尾' });
+          trailerMarker = new maps.Marker({ map, icon: createIcon('#64748b') });
           trailerMarker.addListener('click', () => showInfo(trailerMarker, '最後尾', '#64748b'));
         }
         trailerMarker.setPosition({ lat: trailer.coords[1], lng: trailer.coords[0] });
@@ -110,7 +106,6 @@
         const m = new maps.Marker({
           map: map,
           position: { lat: point.coords[1] < 90 ? point.coords[1] : point.coords[0], lng: point.coords[1] < 90 ? point.coords[0] : point.coords[1] },
-          title: point.name,
           icon: createIcon(isWarning ? '#ef4444' : '#10b981')
         });
 
@@ -122,7 +117,6 @@
       userMarker = new maps.Marker({
         map: map,
         position: appState.currentCoords ? { lat: appState.currentCoords[1], lng: appState.currentCoords[0] } : routeLatLngs[0],
-        title: '現在地',
         icon: createIcon('#3b82f6'),
         zIndex: 100
       });

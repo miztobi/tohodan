@@ -3,15 +3,17 @@
   import Button from '$lib/components/atoms/Button.svelte';
   import ProgressCard from '$lib/components/molecules/ProgressCard.svelte';
   import Map from '$lib/components/organisms/Map.svelte';
+  import MenuModal from '$lib/components/organisms/MenuModal.svelte';
   import { getCurrentLocation } from '$lib/services/location';
   import { calculateRouteProgress } from '$lib/utils/routeProgress';
   import { saveProgress, getLatestProgress } from '$lib/services/history';
   import { auth } from '$lib/services/firebase';
   import { appState } from '$lib/stores/appState.svelte';
   import { routeSegments, activeRoute } from '$lib/services/route';
-  import { Footprints, History, MapPin, Clock, AlertTriangle } from 'lucide-svelte';
+  import { Footprints, Menu, MapPin, Clock, AlertTriangle } from 'lucide-svelte';
 
   const totalDistance = routeSegments.reduce((acc, s) => acc + s.distanceKm, 0);
+  let isMenuOpen = $state(false);
 
   const segmentData = $derived.by(() => {
     let accumulatedDistance = 0;
@@ -32,7 +34,6 @@
           segmentProgressRatio,
           estimatedMinutesPassed,
           estimatedMinutesRemaining,
-          // Googleマップ用の座標形式に変換して渡す
           points: segment.points.map(p => ({ lat: p[1], lng: p[0] }))
         };
       }
@@ -91,15 +92,18 @@
         </div>
         <div>
           <h1 class="text-3xl font-black text-slate-900 tracking-tighter">徒歩団参</h1>
-          <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Supported by 青年会髙安分会</p>
+          <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">supported by 青年会髙安分会</p>
         </div>
       </div>
-      <button class="p-3 bg-white text-slate-400 hover:text-blue-600 rounded-2xl shadow-sm border border-slate-100 transition-colors">
-        <History size={28} />
+      <!-- 修正：ハンバーガーメニューに変更 -->
+      <button 
+        onclick={() => isMenuOpen = true}
+        class="p-3 bg-white text-slate-600 hover:text-blue-600 rounded-2xl shadow-sm border border-slate-100 transition-colors"
+      >
+        <Menu size={28} />
       </button>
     </header>
 
-    <!-- 地図セクション（現在の区間の座標を渡す） -->
     <Map activeSegmentPoints={segmentData?.points} />
 
     {#if segmentData?.segment}
@@ -153,11 +157,16 @@
         {/if}
       </Button>
 
-      <!-- 電池の消耗に関する注意書き -->
       <div class="flex items-start gap-2 px-4 py-2 text-slate-500">
         <AlertTriangle size={16} class="shrink-0 text-amber-500 mt-0.5" />
         <p class="text-[13px] font-bold leading-relaxed">
-          頻繁に更新ボタンを押すと、電池の消耗が激しくなります。
+          頻繁に更新ボタンを押すと、スマートフォンの電池の消耗が激しくなります。
+        </p>
+      </div>
+      <div class="flex items-start gap-2 px-4 py-2 text-slate-500">
+        <AlertTriangle size={16} class="shrink-0 text-amber-500 mt-0.5" />
+        <p class="text-[13px] font-bold leading-relaxed">
+          端末の位置情報設定がオフになっていると、現在地を更新できないのでご注意ください。
         </p>
       </div>
 
@@ -169,3 +178,6 @@
     </div>
   </div>
 </div>
+
+<!-- メニューモーダル -->
+<MenuModal isOpen={isMenuOpen} onClose={() => isMenuOpen = false} />

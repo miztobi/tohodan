@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { appState } from '$lib/stores/appState.svelte';
+  import { routeSegments } from '$lib/services/route';
   import { MapPin, TrendingUp, Clock, Navigation } from 'lucide-svelte';
   import dayjs from 'dayjs';
   import relativeTime from 'dayjs/plugin/relativeTime';
@@ -10,23 +11,58 @@
   dayjs.locale('ja');
 
   interface Props {
-    segmentData: any; // { segment, segmentProgressRatio, estimatedMinutesPassed, estimatedMinutesRemaining } | null
+    segmentData: any; // { segment, segmentProgressRatio, estimatedMinutesPassed, estimatedMinutesRemaining, points } | null
   }
 
   let { segmentData }: Props = $props();
+  let tick = $state(Date.now());
+  
+  onMount(() => {
+    const updateTick = () => {
+      if (document.visibilityState === 'visible') {
+        tick = Date.now();
+      }
+    };
+    const interval = setInterval(updateTick, 30000);
+    document.addEventListener('visibilitychange', updateTick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', updateTick);
+    };
+  });
 
   const progressRounded = $derived(Math.round(appState.progress * 10) / 10);
-  const lastUpdatedText = $derived(appState.lastUpdated ? dayjs(appState.lastUpdated).fromNow() : '---');
+  
+  // 修正：初期状態や位置情報がない時は「更新なし」と表示
+  const lastUpdatedText = $derived(
+    appState.lastUpdated 
+      ? dayjs(appState.lastUpdated).from(tick) 
+      : '更新なし'
+  );
+  
   const currentTimeText = $derived(dayjs(appState.currentTime).format('HH:mm'));
 
+  // 全体の合計距離
+  const totalDistanceKm = $derived(
+    Math.round(routeSegments.reduce((acc, s) => acc + s.distanceKm, 0) * 100) / 100
+  );
+  
+  // 現在の全体歩行距離 (km)
+  const currentDistanceKm = $derived(
+    Math.round((totalDistanceKm * (appState.progress / 100)) * 100) / 100
+  );
+
   // 区間モードの計算値
+  const isSegmentMode = $derived(appState.progressMode === 'segment');
   const segmentProgressPercent = $derived(segmentData ? segmentData.segmentProgressRatio * 100 : 0);
   const remainingMins = $derived(segmentData ? segmentData.estimatedMinutesRemaining : 0);
-
-  // モードに応じたスタイルと値の切り替え
-  const isSegmentMode = $derived(appState.progressMode === 'segment');
   
-  // 文字色とアイコン色の分岐のみ残す
+  // 区間内の歩行距離と区間総距離
+  const segmentTotalKm = $derived(segmentData?.segment?.distanceKm || 0);
+  const segmentCurrentKm = $derived(
+    Math.round((segmentTotalKm * (segmentProgressPercent / 100)) * 100) / 100
+  );
+
   const themeTextClass = $derived(isSegmentMode ? 'text-emerald-600' : 'text-blue-600');
   const themeIconBgClass = $derived(isSegmentMode ? 'bg-emerald-50' : 'bg-blue-50');
   const themeBarClass = $derived(isSegmentMode ? 'bg-emerald-500' : 'bg-blue-600');
@@ -65,26 +101,44 @@
     </div>
   </div>
 
-  <!-- プログレスバー -->
-  <div class="w-full bg-slate-100 rounded-full h-6 overflow-hidden shadow-inner relative">
-    <div 
-      class="h-full transition-all duration-700 ease-out shadow-lg {themeBarClass}"
-      style="width: {isSegmentMode ? segmentProgressPercent : appState.progress}%"
-    ></div>
+  <div class="space-y-2">
+    <!-- 進捗(km)の表示 -->
+    <div class="flex justify-between items-end px-1">
+      <div class="flex items-baseline gap-0.5 {themeTextClass}">
+        <span class="text-2xl font-black tracking-tight">
+          {isSegmentMode ? segmentCurrentKm : currentDistanceKm}
+        </span>
+        <span class="text-xs font-bold opacity-70">km</span>
+      </div>
+      <div class="flex items-baseline gap-0.5 text-gray-400">
+        <span class="text-sm font-bold">
+          / {isSegmentMode ? segmentTotalKm : totalDistanceKm}
+        </span>
+        <span class="text-[10px] font-bold opacity-70">km</span>
+      </div>
+    </div>
+
+    <!-- プログレスバー -->
+    <div class="w-full bg-slate-100 rounded-full h-6 overflow-hidden shadow-inner relative">
+      <div 
+        class="h-full transition-all duration-700 ease-out shadow-lg {themeBarClass}"
+        style="width: {isSegmentMode ? segmentProgressPercent : appState.progress}%"
+      ></div>
+    </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-4 pt-2">
+  <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50">
     <div class="flex items-center gap-3 text-gray-500">
       <Clock size={20} class="{themeClockIconClass}" />
       <div class="flex flex-col">
-        <span class="text-[11px] uppercase font-bold tracking-wider opacity-60">Last Update</span>
-        <span class="text-base font-bold text-gray-700">{lastUpdatedText}</span>
+        <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Last Update</span>
+        <span class="text-base font-bold text-gray-700 leading-tight">{lastUpdatedText}</span>
       </div>
     </div>
     <div class="flex items-center gap-3 text-gray-500 justify-end">
       <div class="flex flex-col items-end">
-        <span class="text-[11px] uppercase font-bold tracking-wider opacity-60">Current Time</span>
-        <span class="text-base font-bold text-gray-700">{currentTimeText}</span>
+        <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Current Time</span>
+        <span class="text-base font-bold text-gray-700 leading-tight">{currentTimeText}</span>
       </div>
       <Clock size={20} class="{isSegmentMode ? 'text-emerald-500' : 'text-blue-500'}" />
     </div>
