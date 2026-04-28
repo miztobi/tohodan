@@ -33,7 +33,7 @@
 
   const progressRounded = $derived(Math.round(appState.progress * 10) / 10);
   
-  // 修正：初期状態や位置情報がない時は「更新なし」と表示
+  // 初期状態や位置情報がない時は「更新なし」と表示
   const lastUpdatedText = $derived(
     appState.lastUpdated 
       ? dayjs(appState.lastUpdated).from(tick) 
@@ -72,11 +72,12 @@
 <div class="p-6 rounded-3xl shadow-xl border border-gray-100 bg-white space-y-6 transition-all duration-300">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="p-3 rounded-2xl {themeIconBgClass}">
+      <!-- 警告対応: class={themeIconBgClass} のようにクォーテーションを外す -->
+      <div class={`p-3 rounded-2xl ${themeIconBgClass}`}>
         {#if isSegmentMode}
-          <Navigation class="{themeTextClass}" size={28} />
+          <Navigation class={themeTextClass} size={28} />
         {:else}
-          <TrendingUp class="{themeTextClass}" size={28} />
+          <TrendingUp class={themeTextClass} size={28} />
         {/if}
       </div>
       <div>
@@ -88,13 +89,13 @@
     
     <div class="text-right">
       {#if isSegmentMode}
-        <div class="flex items-baseline gap-1 {themeTextClass}">
+        <div class={`flex items-baseline gap-1 ${themeTextClass}`}>
           <span class="text-sm font-bold opacity-80">残り</span>
           <span class="text-4xl font-black tracking-tighter">{remainingMins}</span>
           <span class="text-lg font-bold">分</span>
         </div>
       {:else}
-        <span class="text-4xl font-black tracking-tighter {themeTextClass}">
+        <span class={`text-4xl font-black tracking-tighter ${themeTextClass}`}>
           {progressRounded}%
         </span>
       {/if}
@@ -104,7 +105,7 @@
   <div class="space-y-2">
     <!-- 進捗(km)の表示 -->
     <div class="flex justify-between items-end px-1">
-      <div class="flex items-baseline gap-0.5 {themeTextClass}">
+      <div class={`flex items-baseline gap-0.5 ${themeTextClass}`}>
         <span class="text-2xl font-black tracking-tight">
           {isSegmentMode ? segmentCurrentKm : currentDistanceKm}
         </span>
@@ -121,7 +122,7 @@
     <!-- プログレスバー -->
     <div class="w-full bg-slate-100 rounded-full h-6 overflow-hidden shadow-inner relative">
       <div 
-        class="h-full transition-all duration-700 ease-out shadow-lg {themeBarClass}"
+        class={`h-full transition-all duration-700 ease-out shadow-lg ${themeBarClass}`}
         style="width: {isSegmentMode ? segmentProgressPercent : appState.progress}%"
       ></div>
     </div>
@@ -129,7 +130,8 @@
 
   <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50">
     <div class="flex items-center gap-3 text-gray-500">
-      <Clock size={20} class="{themeClockIconClass}" />
+      <!-- 警告対応: クォーテーションを外す -->
+      <Clock size={20} class={themeClockIconClass} />
       <div class="flex flex-col">
         <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Last Update</span>
         <span class="text-base font-bold text-gray-700 leading-tight">{lastUpdatedText}</span>
@@ -140,7 +142,7 @@
         <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Current Time</span>
         <span class="text-base font-bold text-gray-700 leading-tight">{currentTimeText}</span>
       </div>
-      <Clock size={20} class="{isSegmentMode ? 'text-emerald-500' : 'text-blue-500'}" />
+      <Clock size={20} class={isSegmentMode ? 'text-emerald-500' : 'text-blue-500'} />
     </div>
   </div>
 
