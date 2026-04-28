@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, query, orderBy, getDocs, limit, where } from 'firebase/firestore';
+
 /**
  * 現在の座標を一度だけ取得します（バッテリー節約設計）
  * @returns Promise<[number, number]> [longitude, latitude]
@@ -34,30 +34,22 @@ export interface ParticipantLocation {
   coords: [number, number];
   progress: number;
   updatedAt: any;
+  minutesAgo?: number;
 }
 
-export async function getAllParticipants(): Promise<ParticipantLocation[]> {
+/**
+ * サーバー(SvelteKit API)から先頭と最後尾のデータのみを取得します
+ */
+export async function getActiveExtremes(): Promise<{ leader: ParticipantLocation | null, trailer: ParticipantLocation | null }> {
   try {
-    const q = query(collection(db, 'progress_history'), orderBy('timestamp', 'desc'));
-    const snapshot = await getDocs(q);
-    
-    // ユーザーごとの最新位置のみを保持
-    const latestMap = new Map<string, ParticipantLocation>();
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      if (!latestMap.has(data.uid)) {
-        latestMap.set(data.uid, {
-          uid: data.uid,
-          coords: data.coords,
-          progress: data.progress,
-          updatedAt: data.timestamp
-        });
-      }
-    });
-    
-    return Array.from(latestMap.values());
+    const response = await fetch('/api/participants');
+    if (!response.ok) {
+      throw new Error(`API returned status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error fetching participants:', error);
-    return [];
+    console.error('Error fetching active extremes from API:', error);
+    return { leader: null, trailer: null };
   }
 }

@@ -56,11 +56,13 @@
       }
 
       if (trailer) {
+        const timeText = trailer.minutesAgo !== undefined ? `(${trailer.minutesAgo}分前)` : '';
         if (!trailerMarker) {
           trailerMarker = new maps.Marker({ map, icon: createIcon('#64748b') });
-          trailerMarker.addListener('click', () => showInfo(trailerMarker, '最後尾', '#64748b'));
         }
         trailerMarker.setPosition({ lat: trailer.coords[1], lng: trailer.coords[0] });
+        maps.event.clearListeners(trailerMarker, 'click');
+        trailerMarker.addListener('click', () => showInfo(trailerMarker, '最後尾', '#64748b', timeText));
       }
     } catch (e) {
       console.error("Participants sync error:", e);
