@@ -28,7 +28,7 @@
   <!-- テストHTMLで成功した方式をそのまま再現 -->
   {#if data?.googleMapsApiKey}
     <script 
-      src="https://maps.googleapis.com/maps/api/js?key={data.googleMapsApiKey}&libraries=maps,marker&v=weekly" 
+      src="https://maps.googleapis.com/maps/api/js?key={data.googleMapsApiKey}&loading=async&libraries=maps,marker&v=weekly" 
       async 
       defer
     ></script>

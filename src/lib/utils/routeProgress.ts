@@ -1,4 +1,4 @@
-import * as turf from '@turf/turf';
+import * as turf from "@turf/turf";
 
 /**
  * ルート上の進捗率（%）を計算します
@@ -8,7 +8,7 @@ import * as turf from '@turf/turf';
  */
 export function calculateRouteProgress(
   currentCoords: [number, number],
-  routeCoords: [number, number][]
+  routeCoords: [number, number][],
 ): number {
   if (routeCoords.length < 2) return 0;
 

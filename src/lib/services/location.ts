@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db } from "./firebase";
 
 /**
  * 現在の座標を一度だけ取得します（バッテリー節約設計）
@@ -7,14 +7,14 @@ import { db } from './firebase';
 export async function getCurrentLocation(): Promise<[number, number]> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by your browser'));
+      reject(new Error("Geolocation is not supported by your browser"));
       return;
     }
 
     const options: PositionOptions = {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0
+      maximumAge: 0,
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -24,7 +24,7 @@ export async function getCurrentLocation(): Promise<[number, number]> {
       (error) => {
         reject(error);
       },
-      options
+      options,
     );
   });
 }
@@ -40,16 +40,19 @@ export interface ParticipantLocation {
 /**
  * サーバー(SvelteKit API)から先頭と最後尾のデータのみを取得します
  */
-export async function getActiveExtremes(): Promise<{ leader: ParticipantLocation | null, trailer: ParticipantLocation | null }> {
+export async function getActiveExtremes(): Promise<{
+  leader: ParticipantLocation | null;
+  trailer: ParticipantLocation | null;
+}> {
   try {
-    const response = await fetch('/api/participants');
+    const response = await fetch("/api/participants");
     if (!response.ok) {
       throw new Error(`API returned status: ${response.status}`);
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching active extremes from API:', error);
+    console.error("Error fetching active extremes from API:", error);
     return { leader: null, trailer: null };
   }
 }

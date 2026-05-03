@@ -1,15 +1,15 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { browser } from '$app/environment';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { browser } from "$app/environment";
 import {
   PUBLIC_FIREBASE_API_KEY,
   PUBLIC_FIREBASE_AUTH_DOMAIN,
   PUBLIC_FIREBASE_PROJECT_ID,
   PUBLIC_FIREBASE_STORAGE_BUCKET,
   PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  PUBLIC_FIREBASE_APP_ID
-} from '$env/static/public';
+  PUBLIC_FIREBASE_APP_ID,
+} from "$env/static/public";
 
 const firebaseConfig = {
   apiKey: PUBLIC_FIREBASE_API_KEY,
@@ -17,11 +17,14 @@ const firebaseConfig = {
   projectId: PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: PUBLIC_FIREBASE_APP_ID
+  appId: PUBLIC_FIREBASE_APP_ID,
 };
 
-if (browser && (!PUBLIC_FIREBASE_API_KEY || PUBLIC_FIREBASE_API_KEY === 'YOUR_API_KEY')) {
-  console.warn('Firebase API Key is missing. Check your .env file.');
+if (
+  browser &&
+  (!PUBLIC_FIREBASE_API_KEY || PUBLIC_FIREBASE_API_KEY === "YOUR_API_KEY")
+) {
+  console.warn("Firebase API Key is missing. Check your .env file.");
 }
 
 // クライアントサイドでの二重初期化を防止

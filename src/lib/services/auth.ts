@@ -1,5 +1,9 @@
-import { auth } from './firebase';
-import { signInAnonymously, onAuthStateChanged, type User } from 'firebase/auth';
+import { auth } from "./firebase";
+import {
+  signInAnonymously,
+  onAuthStateChanged,
+  type User,
+} from "firebase/auth";
 
 /**
  * 匿名ログインを実行します
@@ -9,7 +13,7 @@ export async function loginAnonymously(): Promise<User> {
     const userCredential = await signInAnonymously(auth);
     return userCredential.user;
   } catch (error) {
-    console.error('Anonymous auth failed:', error);
+    console.error("Anonymous auth failed:", error);
     throw error;
   }
 }

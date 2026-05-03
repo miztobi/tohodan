@@ -95,7 +95,6 @@
           <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">supported by 青年会髙安分会</p>
         </div>
       </div>
-      <!-- 修正：ハンバーガーメニューに変更 -->
       <button 
         onclick={() => isMenuOpen = true}
         class="p-3 bg-white text-slate-600 hover:text-blue-600 rounded-2xl shadow-sm border border-slate-100 transition-colors"

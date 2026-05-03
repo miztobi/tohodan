@@ -1,8 +1,8 @@
-import { browser } from '$app/environment';
+import { browser } from "$app/environment";
 
-export async function loadMapLibrary() {
+export async function loadMapLibrary(): Promise<any> {
   if (!browser) return null;
-  
+
   // HTML側（+layout.svelte）で読み込まれるのを待つ
   return new Promise((resolve) => {
     if (window.google && window.google.maps) {
@@ -26,7 +26,7 @@ export async function loadMapLibrary() {
   });
 }
 
-export async function loadMarkerLibrary() {
+export async function loadMarkerLibrary(): Promise<any> {
   // すでにlibraries=maps,markerで読み込んでいるので同じものを返す
-  return loadMapLibrary(); 
+  return loadMapLibrary();
 }

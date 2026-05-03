@@ -5,7 +5,7 @@ export class AppState {
   error = $state<string | null>(null);
   lastUpdated = $state<Date | null>(null);
   currentTime = $state<Date>(new Date());
-  progressMode = $state<'total' | 'segment'>('total');
+  progressMode = $state<"total" | "segment">("total");
 
   updateLocation(coords: [number, number], newProgress: number) {
     this.currentCoords = coords;
@@ -14,7 +14,7 @@ export class AppState {
   }
 
   toggleProgressMode() {
-    this.progressMode = this.progressMode === 'total' ? 'segment' : 'total';
+    this.progressMode = this.progressMode === "total" ? "segment" : "total";
   }
 
   setTracking(status: boolean) {
